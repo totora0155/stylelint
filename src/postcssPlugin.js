@@ -4,6 +4,11 @@ import ruleDefinitions from "./rules"
 import disableRanges from "./disableRanges"
 import buildConfig from "./buildConfig"
 
+const numberedSeveritiesMap = new Map()
+numberedSeveritiesMap.set(0, "ignore")
+numberedSeveritiesMap.set(1, "warning")
+numberedSeveritiesMap.set(2, "error")
+
 export default postcss.plugin("stylelint", (options = {}) => {
   return (root, result) => {
     // result.stylelint is the namespace for passing stylelint-related
@@ -36,21 +41,33 @@ export default postcss.plugin("stylelint", (options = {}) => {
           throw configurationError(`Undefined rule ${ruleName}`)
         }
 
-        // If severity is 0, run nothing
-        const ruleSettings = config.rules[ruleName]
-        const ruleSeverity = (Array.isArray(ruleSettings))
-          ? ruleSettings[0]
-          : ruleSettings
-        if (ruleSeverity === 0) {
-          return
-        }
+        // If severity is 'ignore', run nothing
+        const ruleSettings = [].concat(config.rules[ruleName])
+
+        const ruleSeverity = getRuleSeverity(ruleName, ruleSettings)
+
+        if (ruleSeverity === "ignore") { return }
 
         // Log the rule's severity
         result.stylelint.ruleSeverities[ruleName] = ruleSeverity
 
         // Run the rule with the primary and secondary options
-        ruleDefinitions[ruleName](ruleSettings[1], ruleSettings[2])(root, result)
+        if (config.errorByDefault) {
+          ruleDefinitions[ruleName](ruleSettings[0], ruleSettings[1])(root, result)
+        } else {
+          ruleDefinitions[ruleName](ruleSettings[1], ruleSettings[2])(root, result)
+        }
       })
+
+      function getRuleSeverity(ruleName, ruleSettings) {
+        if (config.errorByDefault) {
+          if (ruleSettings[0] === false) { return "ignore" }
+          if (ruleSettings[1] && ruleSettings[1].warn === true) { return "warning" }
+          return "error"
+        }
+
+        return numberedSeveritiesMap.get(ruleSettings[0])
+      }
     })
   }
 })

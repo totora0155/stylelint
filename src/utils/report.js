@@ -20,7 +20,7 @@
 export default function ({ ruleName, result, message, line, node, index, word }) {
   result.stylelint = result.stylelint || {}
 
-  if (result.stylelint.quiet && result.stylelint.ruleSeverities[ruleName] !== 2) {
+  if (result.stylelint.quiet && result.stylelint.ruleSeverities[ruleName] !== "error") {
     return
   }
 
@@ -40,8 +40,10 @@ export default function ({ ruleName, result, message, line, node, index, word })
     }
   }
 
-  const severity = (result.stylelint.ruleSeverities) ? result.stylelint.ruleSeverities[ruleName] : 0
-  if (!result.stylelint.stylelintError && severity === 2) {
+  const severity = (result.stylelint.ruleSeverities)
+    ? result.stylelint.ruleSeverities[ruleName]
+    : "ignore"
+  if (!result.stylelint.stylelintError && severity === "error") {
     result.stylelint.stylelintError = true
   }
 

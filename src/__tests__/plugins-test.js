@@ -21,13 +21,14 @@ const configRelative = {
   },
 }
 
-const configAbsolute = {
+const configAbsoluteErrorByDefault = {
   plugins: [
     path.join(__dirname, "./fixtures/plugin-warn-about-foo"),
   ],
+  errorByDefault: true,
   rules: {
-    "warn-about-foo": [ 2, "always" ],
-    "block-no-empty": 2,
+    "warn-about-foo": "always",
+    "block-no-empty": true,
   },
 }
 
@@ -38,7 +39,7 @@ const configExtendRelative = {
 }
 
 const processorRelative = postcss().use(stylelint({ config: configRelative, configBasedir: __dirname }))
-const processorAbsolute = postcss().use(stylelint({ config: configAbsolute }))
+const processorAbsolute = postcss().use(stylelint({ config: configAbsoluteErrorByDefault }))
 const processorExtendRelative = postcss().use(stylelint({ config: configExtendRelative, configBasedir: __dirname }))
 
 test("plugin runs", t => {
